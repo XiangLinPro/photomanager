@@ -1,0 +1,168 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit|ie-comp|ie-stand">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <meta http-equiv="content-type" content="text/html;"/>
+    <link rel="Shortcut Icon" href="/favicon.ico" />
+    <!--[if lt IE 9]>
+    <script type="text/javascript" src="/3rdparty/html5.js"></script>
+    <script type="text/javascript" src="/3rdparty/respond.min.js"></script>
+    <script type="text/javascript" src="/3rdparty/PIE_IE678.js"></script>
+    <![endif]-->
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/H-ui.min.css" />
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/H-ui.admin.css" />
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/iconfont/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/icheck/icheck.css" />
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/skin/default/skin.css" id="skin" />
+    <!--[if IE 6]>
+    <script type="text/javascript" src="http://lib.h-ui.net/DD_belatedPNG_0.0.8a-min.js" ></script>
+    <script>DD_belatedPNG.fix('*');</script>
+    <![endif]-->
+    <title>路线管理></title>
+
+    <link rel="stylesheet" type="text/css" href="/skin/layui.css" />
+    <link rel="stylesheet" href="/3rdparty/picker.css">
+    <script type="text/javascript" src="/jquery-1.11.1.js"></script>
+    <script type="text/javascript" src="/3rdparty/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/3rdparty/H-ui.js"></script>
+    <script type="text/javascript" src="/3rdparty/H-ui.admin.js"></script>
+    <script type="text/javascript" src="/3rdparty/picker.js"></script>
+    <script type="text/javascript" src="/major_minor_function.js"></script>
+
+    <script src="/foundation-datepicker.js"></script>
+    <script src="/foundation-datepicker.zh-CN.js"></script>
+    <script src="/swiper.min.js"></script>
+    <script src="/iconfont.js"></script>
+</head>
+<body>
+<nav class="breadcrumb"><i class="Hui-iconfont">&#xe67f;</i> 路线 <span class="c-gray en">&gt;</span> 路线管理 <span class="c-gray en">&gt;</span>设备路线 <a class="btn btn-success radius r" style="line-height:1.6em;margin-top:3px" href="javascript:location.replace(location.href);" title="刷新" ><i class="Hui-iconfont">&#xe68f;</i></a></nav>
+<div class="page-container">
+
+    <div><span class="r">共有路线：<strong><%=crudPhoto.length%></strong> 条</span> </div>
+    <div class="mt-20">
+        <table class="table table-border table-bordered table-hover table-bg table-sort" id="lineTable1">
+            <thead>
+            <tr class="text-c">
+                <th width="100">id</th>
+                <th width="10">标注</th>
+                <th width="100">图片</th>
+                <th width="100">操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+            for (var i = 0; i < crudPhoto.length; i++){
+            %>
+            <tr class="text-c">
+                <!--                        <td><input type="checkbox" value="1" name=""></td>-->
+                <td><%=crudPhoto[i].id%></td>
+                <td><%=crudPhoto[i].marked%></td>
+                <td><img src="<%=crudPhoto[i].img%>"></td>
+                <td class="td-manage"></a>
+                    <a title="查看" href="javascript:;" onclick="lookHistoryLine('查看路线','/lookHistoryLine','<%=HistoryLineName[i].Lid%>','500','400')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont" style="margin: 0 10px 0 0">&#xe603;</i></a>
+                    <a title="编辑" href="javascript:;" onclick="editLineName('修改线路名','/editLineName','<%=HistoryLineName[i].Lid%>','300','150')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont" style="margin: 0 10px 0 0">&#xe6df;</i></a>
+
+                    <a title="删除" href="javascript:;" onclick="deleteHistoryLine(this,'<%=HistoryLineName[i].Lid%>','<%=HistoryLineName[i].Lname%>')" class="ml-5" style="text-decoration:none"><i class="Hui-iconfont">&#xe6e2;</i></a>
+                </td>
+            </tr>
+            <%
+            }
+            %>
+            </tbody>
+        </table>
+    </div>
+</div>
+<script type="text/javascript" src="/jquery-1.11.1.js"></script>
+<script type="text/javascript" src="/layer.js"></script>
+<script type="text/javascript" src="/3rdparty/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="/3rdparty/H-ui.js"></script>
+<script type="text/javascript" src="/3rdparty/H-ui.admin.js"></script>
+<script type="text/javascript">
+
+    $(function () {
+
+
+        //【“lineTable”即是你要放入datatable管理的table的Id，这个语句意思是我们需要先清空datatable中原先的数据，再调用datatable，才不会报错】
+        $("#lineTable1").dataTable().fnDestroy();
+
+        $('.table-sort').dataTable({
+            "aaSorting": [[ 1, "desc" ]],//默认第几个排序
+            "bStateSave": true,//状态保存
+            "aoColumnDefs": [
+                //{"bVisible": false, "aTargets": [ 3 ]} //控制列的隐藏显示
+                {"orderable":false,"aTargets":[0,2]}// 制定列不参与排序
+            ]
+        });
+
+    })
+    /**
+     * 查看历史路径
+     */
+
+    /**
+     * 删除路径
+     */
+    function deleteHistoryLine(obj,id,Lname){
+        layer.confirm("删除【"+Lname+"】路径和标记,是否继续", {icon: 3, title:'提示'},function(index){
+            $.ajax({
+                url: '/deleteHistoryLine?',
+                type: "POST",
+                cache:false,
+                data: {"id":id},
+                success: function (res) {
+                    if (res.code == 200) {
+                        layer.msg(res.msg, {
+                            icon: 6,
+                            time: 2000,
+                        });
+                        location.reload();
+                    } else {
+                        layer.msg(res.msg, {
+                            icon: 5,
+                            time: 1000
+                        });
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * 查看历史路径
+     */
+
+    function lookHistoryLine(title,url,id,w,h) {
+        layer.open({
+            type: 2,
+            area: [w+'px', h +'px'],
+            fix: false, //不固定
+            maxmin: true,
+            shade:0.4,
+            title: title,
+            content: url+'?id='+id
+        });
+    }
+
+    /**
+     * 修改线路名
+     */
+    function editLineName(title,url,id,w,h) {
+
+        var index = layer.open({
+            type: 2,
+            area: [w + 'px', h + 'px'],
+            // area:['60%','80%'],
+            fix: false, //不固定
+            maxmin: true,
+            shade: 0.4,
+            title: title,
+            content: url + '?id=' + id,
+        });
+    }
+
+</script>
+</body>
+</html>

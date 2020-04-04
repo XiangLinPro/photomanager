@@ -1,0 +1,94 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>修改线路信息</title>
+    <style type="text/css">
+        /*body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}*/
+    </style>
+
+    <script type="text/javascript" src="http://res.wx.qq.com/open/js/jweixin-1.2.0.js"></script>
+    <script type="text/javascript" src="http://www.cqsetnav.com/guiji/sac/mvc/wx/WeChatUtil.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/library/CurveLine/1.5/src/CurveLine.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/layer.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="/3rdparty/h-ui.admin/iconfont/iconfont.css" />
+</head>
+<body>
+<div class="page-container">
+    <form class="form form-horizontal" id="form_wxuseredit" method="post">
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">图片标记：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <input type="text" class="layui-input" value="" placeholder="" id="mark" name="name">
+            </div>
+        </div>
+
+        <div class="row cl">
+            <label class="form-label col-xs-4 col-sm-2">图片：</label>
+            <div class="formControls col-xs-8 col-sm-6">
+                <img src="" id="img" width="200" height="300">
+            </div>
+        </div>
+
+
+
+        <div class="row cl">
+            <div class="col-xs-8 col-sm-9 col-xs-offset-4 col-sm-offset-2">
+                <input type="button" id="btn" value="确定" class="btn btn-primary radius" >
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>
+<script type="text/javascript">
+    var obj1 = '<%-editPhoto%>'
+    obj2 = JSON.parse(obj1);
+
+    var mark = obj2[0].marked;
+    var img = obj2[0].img;
+    $(function () {
+        $("#mark").val(mark);
+        $("#img").attr('src',img);
+    })
+
+
+    $("#btn").click(function () {
+        var id = obj2[0].id;
+        var marked = $("#mark").val();
+        if(marked == "") {
+            layer.msg("路线名不能为空，请输入", {time: 2000, icon: 5, shift: 6}, function () {
+
+            });
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "/editPhotoInformation",
+            dataType :"json",
+            data: {
+                "marked"  :marked,
+                "id"  : id,
+            },
+            success: function (res) {
+                if (res.code == 200) {
+                    layer.msg(res.msg, {
+                        icon: 6,
+                        time: 2000,
+                    });
+                } else {
+                    layer.msg(res.msg, {
+                        icon: 5,
+                        time: 1000
+                    });
+                }
+            }
+        })
+    })
+</script>

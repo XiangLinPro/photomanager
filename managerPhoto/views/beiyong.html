@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录页面</title>
+
+    <style>
+
+        body {
+            background-color: aquamarine;
+            background-size: 100%;
+            background-repeat: no-repeat;
+        }
+
+        #login_frame {
+            width: 400px;
+            height: 260px;
+            padding: 13px;
+
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin-left: -200px;
+            margin-top: -200px;
+
+            background-color: rgba(240, 255, 255, 0.5);
+
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        form p > * {
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        #image_logo {
+            margin-top: 22px;
+        }
+
+        .label_input {
+            font-size: 14px;
+            font-family: 宋体;
+
+            width: 65px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+
+            color: white;
+            background-color: #3CD8FF;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .text_field {
+            width: 278px;
+            height: 28px;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            border: 0;
+        }
+
+        #btn_login {
+            font-size: 14px;
+            font-family: 宋体;
+
+            width: 120px;
+            height: 28px;
+            line-height: 28px;
+            text-align: center;
+
+            color: white;
+            background-color: #3BD9FF;
+            border-radius: 6px;
+            border: 0;
+
+            float: left;
+        }
+
+        #forget_pwd {
+            font-size: 12px;
+            color: white;
+            text-decoration: none;
+            position: relative;
+            float: right;
+            top: 5px;
+
+        }
+
+        #forget_pwd:hover {
+            color: blue;
+            text-decoration: underline;
+        }
+
+        #login_control {
+            padding: 0 28px;
+        }
+
+    </style>
+    <script type="text/javascript" src="http://libs.baidu.com/jquery/2.1.4/jquery.min.js"></script>
+    <script type="text/javascript" src="/layer.js"></script>
+</head>
+
+<body>
+<div id="login_frame">
+    <form method="post" action="#">
+
+        <p>描述：<input type="text" id="mark" class="text_field"/></p>
+        <p>上传图片：  <input type="file" id='id-picture' name='face'  accept="image/*" /></p>
+
+        <div id='face-empty-result'>
+            <img style='width:4rem' src="https://github.com/wangheng3751/my-resources/blob/master/images/camera.png?raw=true" alt="">
+        </div>
+
+        <div>
+            <img style='width: 100%' id='face-result'/>
+        </div>
+        <div id="login_control">
+            <input type="button" id="btn_login" value="确定" onclick="save();"/>
+        </div>
+        <div>
+            <img style='width: 100%' id='innerPhoto'/>
+        </div>
+    </form>
+</div>
+</body>
+
+</html>
+
+<script type="text/javascript">
+    /**
+     * 标记
+     * */
+    window.onload=function(){
+
+        document.getElementById("id-picture").addEventListener("change", function(){
+            onFileChange(this,"face-result","face-empty-result")
+        });
+    };
+    /**
+     * 选中图片时的处理
+     * @param {*} fileObj input file元素
+     * @param {*} el //选中后用于显示图片的元素ID
+     * @param {*} btnel //未选中图片时显示的按钮区域ID
+     */
+    function onFileChange(fileObj,el,btnel){
+        var windowURL = window.URL || window.webkitURL;
+        var dataURL;
+        var imgObj = document.getElementById(el);
+        document.getElementById(btnel).style.display="none";
+        imgObj.style.display="block";
+        if (fileObj && fileObj.files && fileObj.files[0]) {
+            dataURL = windowURL.createObjectURL(fileObj.files[0]);
+            imgObj.src=dataURL;
+        } else {
+            dataURL = fileObj.value;
+            imgObj.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale)";
+            imgObj.filters.item("DXImageTransform.Microsoft.AlphaImageLoader").src = dataURL;
+        }
+    }
+
+    function save() {
+        var lids = new Date().getTime();
+        timestampss = lids.toString().substr(0,11);
+        var jpg = timestampss+".jpg";
+
+        var marked = $("#mark").val();
+        var file = $("#id-picture").val();
+        var imgData=compressImageTobase64(document.getElementById("face-result"),500,600,90);
+        var data = {
+            timestampss:timestampss,
+            imgData:imgData,
+            marked:marked,
+        }
+        if(marked == ""){
+            layer.msg("标记标题不能为空，请输入", {time:2000, icon:5, shift:6}, function(){
+            });
+            return;
+        }
+
+        if(file == ""){
+            layer.msg("图片不能为空，请输入", {time:2000, icon:5, shift:6}, function(){
+            });
+            return;
+        }
+        var loadingIndex=null;
+        var callbackdata = function (cb) {
+            var changeFunc = new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: "/saveMarked",
+                    type: 'POST',
+                    data: data,
+                    dataType: "JSON",
+                    beforeSend: function () {
+                        loadingIndex = layer.msg('处理中', {icon: 16});
+                    },
+                    success: function (r) {
+                        layer.close(loadingIndex);
+                        if (r.code == 200) {
+                            layer.msg(r.msg, {icon: 1, time: 1000});
+                            $("#mark").val("");
+                            $("#id-picture").val("");
+                            $("#face-result").attr('src', "");
+
+                            var data = {
+                                marked:marked,
+                                jpg:jpg
+                            }
+                            resolve(data);
+                        } else if (r.code == 201) {
+                            layer.msg(r.msg, {icon: 2, time: 1000});
+                        }
+                    },
+                    error: function (r) {
+                        layer.msg("添加失败", {icon: 2, time: 1000});
+                    }
+                })
+            });
+            return changeFunc;
+        }
+        callbackdata().then(function (res) {
+            $("#innerPhoto").innerHTML =res.jpg;
+        })
+    }
+
+    // var filePath = $(this).val(),         //获取到input的value，里面是文件的路径
+    //     fileFormat = filePath.substring(filePath.lastIndexOf(".")).toLowerCase(),
+    //     src = window.URL.createObjectURL(this.files[0]); //转成可以在本地预览的格式
+
+    /**
+     * 将图片压缩后返回base64格式的数据
+     * @param {*} image img元素
+     * @param {*} width 压缩后图片宽度
+     * @param {*} height 压缩后图片高度
+     * @param {*} qua //图片质量1-100
+     */
+    function compressImageTobase64(image,width,height,qua){
+        var quality = qua ? qua / 100 : 0.8;
+        var canvas = document.createElement("canvas"),
+            ctx = canvas.getContext('2d');
+        var w = image.naturalWidth,
+            h = image.naturalHeight;
+        canvas.width = width||w;
+        canvas.height = height||h;
+        ctx.drawImage(image, 0, 0, w, h, 0, 0, width||w, height||h);
+        var data = canvas.toDataURL("image/jpeg", quality);
+        return data;
+    }
+
+
+</script>

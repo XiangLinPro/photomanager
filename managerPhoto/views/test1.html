@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>图片上传</title>
+</head>
+
+<body>
+</body>
+<form id='test_form' action='/test1' method='get'>
+    <input type='text' name='username' value='' id="mark"/>
+
+    <input type="file" id="id-picture" name='face'  accept="image/*" >
+
+
+    <div  id='face-empty-result'>
+        <img style='width:4rem' src="https://github.com/wangheng3751/my-resources/blob/master/images/camera.png?raw=true" alt="">
+    </div>
+
+    <img style='width: 100%' id='face-result'/>
+
+    <input type="button" id="btn_login" value="上传" onclick="save();"/>
+</form>
+</html>
+<script type="text/javascript">
+
+    /**
+     * 标记
+     * */
+    window.onload=function(){
+
+        document.getElementById("id-picture").addEventListener("change", function(){
+            onFileChange(this,"face-result","face-empty-result")
+        });
+    };
+
+    console.log(document.getElementById("id-picture").files[0])
+    /**
+     * 选中图片时的处理
+     * @param {*} fileObj input file元素
+     * @param {*} el //选中后用于显示图片的元素ID
+     * @param {*} btnel //未选中图片时显示的按钮区域ID
+     */
+    function onFileChange(fileObj,el,btnel){
+        var windowURL = window.URL || window.webkitURL;
+        var dataURL;
+        var imgObj = document.getElementById(el);
+        document.getElementById(btnel).style.display="none";
+        imgObj.style.display="block";
+        if (fileObj && fileObj.files && fileObj.files[0]) {
+            dataURL = windowURL.createObjectURL(fileObj.files[0]);
+            imgObj.src=dataURL;
+        } else {
+            dataURL = fileObj.value;
+            imgObj.style.filter = "progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale)";
+            imgObj.filters.item("DXImageTransform.Microsoft.AlphaImageLoader").src = dataURL;
+        }
+    }
+
+
+    /**
+     * 将图片压缩后返回base64格式的数据
+     * @param {*} image img元素
+     * @param {*} width 压缩后图片宽度
+     * @param {*} height 压缩后图片高度
+     * @param {*} qua //图片质量1-100
+     */
+    function compressImageTobase64(image,width,height,qua){
+        var quality = qua ? qua / 100 : 0.8;
+        var canvas = document.createElement("canvas"),
+            ctx = canvas.getContext('2d');
+        var w = image.naturalWidth,
+            h = image.naturalHeight;
+        canvas.width = width||w;
+        canvas.height = height||h;
+        ctx.drawImage(image, 0, 0, w, h, 0, 0, width||w, height||h);
+        var data = canvas.toDataURL("image/jpeg", quality);
+        return data;
+    }
+
+    function save() {
+        var lids = new Date().getTime();
+        timestampss = lids.toString().substr(0,11);
+        var jpg = timestampss+".jpg";
+
+        // var marked = $("#mark").val();
+        var marked = document.getElementById("mark").value;
+        alert(marked)
+        //var file = $("#id-picture").val();
+        var file = document.getElementById("id-picture").value;
+        var imgData=compressImageTobase64(document.getElementById("face-result"),500,600,90);
+
+
+        var data = 'timestampss='
+            + encodeURIComponent(timestampss)
+            + '&imgData='
+            + encodeURIComponent(imgData)
+            + '&marked='
+            + encodeURIComponent(marked)
+        ;
+        if(marked == ""){
+            // layer.msg("标记不能为空，请输入", {time:2000, icon:5, shift:6}, function(){
+            // });
+            alert("标记不能为空，请输入");
+            return;
+        }
+
+        if(file == ""){
+            // layer.msg("图片不能为空，请选择", {time:2000, icon:5, shift:6}, function(){
+            // });
+            alert("图片不能为空，请选择");
+            return;
+        }
+
+        var xhr = new XMLHttpRequest();
+        //设置请求的类型及url
+        xhr.open('post', '/saveMarked' );
+        //post请求一定要添加请求头才行不然会报错
+        xhr.setRequestHeader("Content-type", 'application/x-www-form-urlencoded');
+
+        //发送请求
+        xhr.send(data);
+        xhr.onreadystatechange = function () {
+            // 这步为判断服务器是否正确响应
+            if (xhr.readyState == 4 && xhr.status == 200) {
+                //console.log(xhr.responseText);
+                alert("插入图片成功")
+            }
+        };
+    }
+
+</script>
